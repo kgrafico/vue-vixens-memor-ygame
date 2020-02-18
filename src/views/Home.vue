@@ -15,17 +15,117 @@
           <p class="moves">Moves: {{numMoves}}</p>
         </div>
       </section>
+      <section id="cards">
+        <ul class="cards">
+          <li class="cardItem" v-for="(card, index) in deck.cards" :key="index">
+            {{card.name}}
+            <!-- placeholder to show what is inside each card -->
+            <button
+              :class="[ card.match ? 'card match' : card.flipped ? 'card show' : card.close ? 'card close' : 'card']"
+              @click="flipCard(card)"
+            >
+              <span v-if="!card.flipped">?</span>
+              <div v-else :class="deck.cards[index].icon"></div>
+            </button>
+          </li>
+        </ul>
+      </section>
     </main>
   </div>
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapState, mapGetters, mapActions } from "vuex";
 
 export default {
   name: "home",
   computed: {
-    ...mapState(["stars", "numMoves", "types"])
+    ...mapState([
+      "gameAnnounce",
+      "win",
+      "stars",
+      "cardsFlipped",
+      "numCardsFlipped",
+      "numMoves",
+      "cardsMatched",
+      "types"
+    ]),
+    ...mapGetters(["deck"])
+  },
+  methods: {
+    ...mapActions([
+      "update_NumMoves",
+      "clear_CardsFlipped",
+      "update_CardsFlipped",
+      "update_NumCardsFlipped",
+      "clear_CardsMatched",
+      "update_CardsMatched"
+    ]),
+    shuffle(cards) {
+      this.deck.cards = [];
+      var currentIndex = cards.length,
+        temporaryValue,
+        randomIndex;
+      // While there remain elements to shuffle...
+      while (0 !== currentIndex) {
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+        // And swap it with the current element.
+        temporaryValue = cards[currentIndex];
+        cards[currentIndex] = cards[randomIndex];
+        cards[randomIndex] = temporaryValue;
+      }
+
+      this.deck.cards = cards;
+    },
+    flipCard(card) {
+      if (card.flipped) {
+        return;
+      } else {
+        this.update_NumMoves({ moves: this.numMoves + 1 });
+      }
+      // only allow flips if there are < or = 2 flipped cards
+      if (this.numCardsFlipped < 2) {
+        card.flipped = true;
+        this.update_NumCardsFlipped({ num: this.numCardsFlipped + 1 });
+        this.update_CardsFlipped({ cards: card });
+      }
+      if (
+        this.numCardsFlipped === 2 &&
+        this.cardsFlipped[0].name === this.cardsFlipped[1].name
+      ) {
+        for (let i = 0; i < this.deck.cards.length; i++) {
+          if (this.deck.cards[i].name === this.cardsFlipped[0].name) {
+            this.deck.cards[i].match = true;
+          }
+        }
+
+        this.update_CardsMatched({ cards: this.cardsFlipped });
+        this.clear_CardsFlipped({ cards: [] });
+        this.update_NumCardsFlipped({ num: 0 });
+      } else if (
+        this.numCardsFlipped === 2 &&
+        this.cardsFlipped[0].name !== this.cardsFlipped[1].name
+      ) {
+        // Wait before closing mismatched card
+        setTimeout(() => {
+          for (let i = 0; i < this.deck.cards.length; i++) {
+            if (this.deck.cards[i].flipped && !this.deck.cards[i].match) {
+              this.deck.cards[i].flipped = false;
+              this.deck.cards[i].close = true;
+            }
+          }
+
+          this.clear_CardsFlipped({ cards: [] });
+          this.update_NumCardsFlipped({ num: 0 });
+          return;
+        }, 500);
+      }
+    }
+  },
+  created() {
+    this.shuffle(this.deck.cards);
   }
 };
 </script>
@@ -58,6 +158,72 @@ export default {
   align-items: center;
   flex-direction: column;
   margin-top: 1em;
+}
+// Cards
+.cards {
+  margin: 2em auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 0.5em;
+  padding: 0;
+
+  .cardItem {
+    list-style: none;
+  }
+
+  .card {
+    height: 90px;
+    width: 90px;
+    font-size: 4em;
+    /* background: #061018 url(/img/fabric.5959b418.png); */
+    background: #061018 url("imgs/fabric.png");
+    background-blend-mode: soft-light;
+    border: 1px solid #acacac;
+    color: #ffffff;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 5px 2px 20px 0 rgba(46, 61, 73, 0.5);
+  }
+
+  .show {
+    font-size: 33px;
+    /* background: #0b5891 url(/img/fabric.5959b418.png); */
+    background: #061018 url("imgs/fabric.png");
+    cursor: default;
+  }
+
+  .match {
+    cursor: default;
+    /* background: #0e4b5a url(/img/fabric.5959b418.png); */
+    background: #061018 url("imgs/fabric.png");
+    font-size: 33px;
+    animation-name: match-animation;
+    -webkit-animation-name: match-animation;
+    animation-duration: 1000ms;
+    -webkit-animation-duration: 1000ms;
+    transform-origin: 70% 70%;
+    animation-iteration-count: 1000ms;
+    animation-timing-function: linear;
+  }
+
+  .close {
+    cursor: default;
+    animation-name: close;
+    -webkit-animation-name: close;
+    animation-duration: 1000ms;
+    -webkit-animation-duration: 1000ms;
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
+    &:hover,
+    &:focus {
+      background-blend-mode: hard-light;
+      color: #112c3e;
+      border: 2px solid #112c3e;
+    }
+  }
 }
 </style>
 
