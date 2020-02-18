@@ -92,9 +92,6 @@ export default new Vuex.Store({
     update_Stars({ commit, dispatch }, { num }) {
       commit("UPDATE_STARS", num);
     },
-    update_routeAnnouncement({ commit }, { message }) {
-      commit("UPDATE_ROUTE_ANNOUNCEMENT", message);
-    },
     async clearGame({ commit, dispatch }) {
       try {
         await dispatch("update_Win", { win: false });
@@ -107,6 +104,9 @@ export default new Vuex.Store({
       } catch (error) {
         commit("ERROR", error);
       }
+    },
+    update_routeAnnouncement({ commit }, { message }) {
+      commit("UPDATE_ROUTE_ANNOUNCEMENT", message);
     }
   }
 });
