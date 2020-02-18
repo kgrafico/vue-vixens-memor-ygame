@@ -1,7 +1,13 @@
 <template>
   <div id="app">
+    <p role="status">{{routeAnnouncement}}</p>
     <header>
       <h1 class="title">Matching Game</h1>
+      <ul class="skip-links">
+        <li>
+          <a href="#main" ref="skipLink">Skip to main content</a>
+        </li>
+      </ul>
     </header>
     <div id="nav">
       <router-link to="/">Home</router-link>|
@@ -12,8 +18,36 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
+
 export default {
-  name: "home"
+  name: "home",
+  methods: {
+    ...mapActions(["update_routeAnnouncement"]),
+    announceRoute(message) {
+      this.update_routeAnnouncement(message);
+    }
+  },
+  watch: {
+    $route: function() {
+      this.announceRoute({ message: this.$route.name + " page loaded" });
+
+      this.$nextTick(function() {
+        let navLinks = this.$refs.nav;
+
+        navLinks.querySelectorAll("[aria-current]").forEach(current => {
+          current.removeAttribute("aria-current");
+        });
+
+        navLinks
+          .querySelectorAll(".router-link-exact-active")
+          .forEach(current => {
+            current.setAttribute("aria-current", "page");
+          });
+      });
+      this.$refs["skipLink"].focus();
+    }
+  }
 };
 </script>
 
@@ -24,6 +58,9 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  p {
+    display: none;
+  }
 }
 .title {
   margin: 2em auto 0.5em;
@@ -63,5 +100,32 @@ body {
 
 body {
   background: #ffffff url("imgs/fabric.png");
+}
+
+/* Skip to Main */
+.skip-links {
+  margin: 0;
+  list-style: none;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+
+  a {
+    background: #0e4b5a url(/img/fabric.5959b418.png);
+    background-blend-mode: color-burn;
+    display: block;
+    opacity: 0;
+    font-size: 1em;
+    font-weight: bold;
+
+    &:focus {
+      opacity: 1;
+      padding: 1em;
+    }
+
+    &:visited {
+      color: white;
+    }
+  }
 }
 </style>
