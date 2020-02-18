@@ -37,6 +37,7 @@ export default new Vuex.Store({
       }
       return deck;
     }
+    // gameUpdate: {}
   },
   mutations: {
     UPDATE_NUMMOVES(state, payload) {

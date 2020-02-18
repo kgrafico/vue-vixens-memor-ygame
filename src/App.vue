@@ -18,10 +18,13 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapState, mapActions } from "vuex";
 
 export default {
   name: "home",
+  computed: {
+    ...mapState(["routeAnnouncement"])
+  },
   methods: {
     ...mapActions(["update_routeAnnouncement"]),
     announceRoute(message) {
