@@ -10,7 +10,9 @@ export default new Vuex.Store({
     types: ["car", "bug", "paw", "bomb", "gamepad", "diamond", "heart", "bell"],
     cardsFlipped: [],
     numCardsFlipped: 0,
-    cardsMatched: []
+    cardsMatched: [],
+    win: false,
+    routeAnnouncement: ""
   },
   getters: {
     deck: state => {
@@ -54,6 +56,15 @@ export default new Vuex.Store({
     },
     UPDATE_CARDSMATCHED(state, payload) {
       state.cardsMatched.push(payload);
+    },
+    UPDATE_WIN(state, payload) {
+      state.win = payload;
+    },
+    UPDATE_STARS(state, payload) {
+      state.stars = payload;
+    },
+    UPDATE_ROUTE_ANNOUNCEMENT(state, payload) {
+      state.routeAnnouncement = payload;
     }
   },
   actions: {
@@ -74,6 +85,28 @@ export default new Vuex.Store({
     },
     update_CardsMatched({ commit }, { cards }) {
       commit("UPDATE_CARDSMATCHED", cards);
+    },
+    update_Win({ commit }, { win }) {
+      commit("UPDATE_WIN", win);
+    },
+    update_Stars({ commit, dispatch }, { num }) {
+      commit("UPDATE_STARS", num);
+    },
+    async clearGame({ commit, dispatch }) {
+      try {
+        await dispatch("update_Win", { win: false });
+        await dispatch("update_Stars", { num: 3 });
+        await dispatch("clear_CardsFlipped", { cards: [] });
+        await dispatch("update_NumCardsFlipped", { num: 0 });
+        await dispatch("update_NumMoves", { moves: 0 });
+        await dispatch("clear_CardsMatched", { cards: [] });
+        await dispatch("update_GameAnnounce", { message: "" });
+      } catch (error) {
+        commit("ERROR", error);
+      }
+    },
+    update_routeAnnouncement({ commit }, { message }) {
+      commit("UPDATE_ROUTE_ANNOUNCEMENT", message);
     }
   }
 });

@@ -1,8 +1,9 @@
 <template>
   <div class="home">
-    <main class="container">
+    <Winning v-if="win" :newGame="newGame"></Winning>
+    <main v-else class="container">
       <section>
-        <button class="restart buttonGray">
+        <button @click="newGame()" class="restart buttonGray">
           <i class="fa fa-repeat"></i>
           <span class="reset">Reset</span>
         </button>
@@ -34,11 +35,17 @@
   </div>
 </template>
 
+
+
 <script>
 import { mapState, mapGetters, mapActions } from "vuex";
+import Winning from "@/components/Winning.vue";
 
 export default {
   name: "home",
+  components: {
+    Winning
+  },
   computed: {
     ...mapState([
       "gameAnnounce",
@@ -48,7 +55,8 @@ export default {
       "numCardsFlipped",
       "numMoves",
       "cardsMatched",
-      "types"
+      "types",
+      "win"
     ]),
     ...mapGetters(["deck"])
   },
@@ -59,8 +67,23 @@ export default {
       "update_CardsFlipped",
       "update_NumCardsFlipped",
       "clear_CardsMatched",
-      "update_CardsMatched"
+      "update_CardsMatched",
+      "update_Stars",
+      "update_GameAnnounce",
+      "update_Win",
+      "clearGame"
     ]),
+    newGame() {
+      this.shuffle(this.deck.cards);
+
+      for (let i = 0; i < this.deck.cards.length; i++) {
+        this.deck.cards[i].flipped = false;
+        this.deck.cards[i].close = false;
+        this.deck.cards[i].match = false;
+      }
+
+      this.clearGame();
+    },
     shuffle(cards) {
       this.deck.cards = [];
       var currentIndex = cards.length,
@@ -84,6 +107,15 @@ export default {
         return;
       } else {
         this.update_NumMoves({ moves: this.numMoves + 1 });
+        if (this.numMoves < 30) {
+          this.update_Stars({ num: 3 });
+        } else if (this.numMoves < 40) {
+          this.update_Stars({ num: 2 });
+        } else if (this.numMoves < 50) {
+          this.update_Stars({ num: 1 });
+        } else if (this.numMoves > 50) {
+          this.update_Stars({ num: 0 });
+        }
       }
       // only allow flips if there are < or = 2 flipped cards
       if (this.numCardsFlipped < 2) {
@@ -91,6 +123,7 @@ export default {
         this.update_NumCardsFlipped({ num: this.numCardsFlipped + 1 });
         this.update_CardsFlipped({ cards: card });
       }
+      // Match
       if (
         this.numCardsFlipped === 2 &&
         this.cardsFlipped[0].name === this.cardsFlipped[1].name
@@ -175,8 +208,7 @@ export default {
     height: 90px;
     width: 90px;
     font-size: 4em;
-    /* background: #061018 url(/img/fabric.5959b418.png); */
-    background: #061018 url("imgs/fabric.png");
+    background: #061018 url(/img/fabric.5959b418.png);
     background-blend-mode: soft-light;
     border: 1px solid #acacac;
     color: #ffffff;
@@ -190,15 +222,13 @@ export default {
 
   .show {
     font-size: 33px;
-    /* background: #0b5891 url(/img/fabric.5959b418.png); */
-    background: #061018 url("imgs/fabric.png");
+    background: #0b5891 url(/img/fabric.5959b418.png);
     cursor: default;
   }
 
   .match {
     cursor: default;
-    /* background: #0e4b5a url(/img/fabric.5959b418.png); */
-    background: #061018 url("imgs/fabric.png");
+    background: #0e4b5a url(/img/fabric.5959b418.png);
     font-size: 33px;
     animation-name: match-animation;
     -webkit-animation-name: match-animation;
@@ -223,6 +253,54 @@ export default {
       color: #112c3e;
       border: 2px solid #112c3e;
     }
+  }
+}
+
+.cards {
+  .card {
+    background: #061018 url("imgs/fabric.png");
+  }
+  .show {
+    background: #0b5891 url("imgs/fabric.png");
+  }
+
+  .match {
+    background: #0e4b5a url("imgs/fabric.png");
+  }
+}
+
+.buttonGray {
+  background: #2e3d49;
+  font-size: 1em;
+  color: #ffffff;
+  border-radius: 8px;
+  cursor: pointer;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5em;
+  box-shadow: 5px 2px 20px 0 rgba(46, 61, 73, 0.5);
+  &:hover,
+  &:focus {
+    background: #0b5891;
+  }
+}
+
+.reset {
+  padding-left: 1em;
+}
+
+@media (min-width: 450px) {
+  .cards {
+    grid-gap: 1em;
+    .card {
+      height: 125px;
+      width: 125px;
+    }
+  }
+}
+@media (min-width: 600px) {
+  .cards {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 </style>

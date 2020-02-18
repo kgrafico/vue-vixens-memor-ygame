@@ -2,15 +2,31 @@
   <div class="win">
     <div>
       <h2>Congratulations!</h2>
+      <ul class="stars">
+        <li v-for="(star, index) in stars" :key="index">
+          <i :class="`${index} fa fa-star`"></i>
+        </li>
+      </ul>
+      <p>You won the game with {{stars}} stars left!</p>
+      <button class="buttonGray" @click="newGame()">Play again</button>
     </div>
   </div>
 </template>
 
 <script>
+import { mapState } from "vuex";
+
 export default {
-  name: "Winning"
+  name: "Winning",
+  props: {
+    newGame: { type: Function }
+  },
+  computed: {
+    ...mapState(["stars"])
+  }
 };
 </script>
+
 
 <style lang="scss">
 /* if you win */
